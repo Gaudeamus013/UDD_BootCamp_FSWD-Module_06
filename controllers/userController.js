@@ -3,110 +3,73 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.createUser = async (req, res) => {
-  const { username, email, password } = req.body;
   try {
-      const salt = await bcryptjs.genSalt(10)
-      const hashedPassword = await bcryptjs.hash(password, salt);
-      const respuestaDB = await User.create({
-          username,
-          email,
-          password: hashedPassword
-      });
-
-      return res.json(respuestaDB);
-
+    const { username, email, password } = req.body;
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = await User.create({ username, email, password: hashedPassword });
+    res.status(201).json({ message: 'Usuario creado exitosamente', userId: user._id });
   } catch (error) {
-      return res.status(400).json({
-          msg: error.menssage
-      });
+    res.status(400).json({ message: 'Error al crear el usuario', error: error.message });
   }
 };
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body
   try {
-    let foundUser = await User.findOne({ email });
-    if (!foundUser) {
-      return res.status(400).json({ msg: " Usuario no Existe, cree un nuevo" });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Usuario no existe' });
     }
-    const correctPass = await bcrypt.compare(password, foundUser.password);
-    if (!correctPass) {
-      return res.status(400).json({ msg: "El username o password no son correctos" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Credenciales inválidas' });
     }
-
-    const payload = { user: { id: foundUser.id } }
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: 3600 },
-      (error, token) => {
-        if (error) throw error;
-        res.json({ token });
-      });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token });
   } catch (error) {
-    res.status(500).json({
-      msg: "Hay un error", error: error.message
-    });
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 };
 
-
 exports.verifyToken = async (req, res) => {
   try {
-    const foundUser = await User.findById(req.user.id).select('-password')
-    res.json({ foundUser });
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
   } catch (error) {
-    res.status(500).json({
-      msg: "Hay un error",
-      error: error.message
-    });
+    res.status(500).json({ message: 'Error al verificar el token', error: error.message });
   }
 };
 
 exports.updateUser = async (req, res) => {
-  const { username, email, password } = req.body;
-  const updates = {};
-
-  if (username) updates.username = username;
-  if (email) updates.email = email;
-  if (password) {
-    const salt = await bcryptjs.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    updates.password = hashedPassword;
-  }
-
   try {
-    const updateUser = await User.finByIdAndUpdate(req.user.id, updates, {
+    const { username, email, password } = req.body;
+    const updates = {};
+    if (username) updates.username = username;
+    if (email) updates.email = email;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updates.password = await bcrypt.hash(password, salt);
+    }
+    const user = await User.findByIdAndUpdate(req.user.id, updates, {
       new: true,
       runValidators: true,
       select: '-password'
     });
-
-    if (!updateUser) {
-      return res.status(404).json({
-        msg: 'Usuario no encontrado',
-        error: error.message
-      });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-    res.json(updateUser);
-
+    res.json(user);
   } catch (error) {
-    res.status(500).json({
-      msg: "Error al actualizar el usuario",
-      error: error.message
-    });
-
+    res.status(500).json({ message: 'Error al actualizar el usuario', error: error.message });
   }
 };
 
 exports.getAllUsers = async (req, res) => {
   try {
-      const users = await User.find().select('-password');
-      res.json({ users });
+    const users = await User.find().select('-password');
+    res.json(users);
   } catch (error) {
-      res.status(500).json({
-          msg: "Error al obtener los usuarios",
-          error: error.message
-      });
+    res.status(500).json({ message: 'Error al obtener los usuarios', error: error.message });
   }
 };

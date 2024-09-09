@@ -1,85 +1,60 @@
-
 const Note = require('../models/noteModel');
 
 exports.createNote = async (req, res) => {
-  const { title, content } = req.body;
-
   try {
-    const newNote = await Note.create({ title, content });
-
+    const { title, content } = req.body;
+    const newNote = await Note.create({ title, content, user: req.user.id });
     res.status(201).json(newNote);
   } catch (error) {
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Error al crear la nota', error: error.message });
   }
 };
 
 exports.getAllNotes = async (req, res) => {
   try {
-    const notes = await Note.find({});
-    res.json({ notes });
+    const notes = await Note.find({ user: req.user.id });
+    res.json(notes);
   } catch (error) {
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Error al obtener las notas', error: error.message });
   }
 };
 
 exports.getNoteById = async (req, res) => {
   try {
-    const note = await Note.findNoteById(req.params.id);
+    const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
     if (!note) {
-      return res.status(404).json({ message: 'Note not found' });
-    } else {
-      res.status(200).json(note);
+      return res.status(404).json({ message: 'Nota no encontrada' });
     }
+    res.json(note);
   } catch (error) {
-    res.status(500).json({
-      message: 'Server error',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Error al obtener la nota', error: error.message });
   }
 };
 
 exports.updateNoteById = async (req, res) => {
-
   try {
-    const note = await Note.findNoteByIdandUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-
-    if (note) {
-      res.status(200).json(note);
-    } else {
-      res.status(400).json({
-        message: 'Note not found',
-        error: error.message
-      });
+    const note = await Note.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!note) {
+      return res.status(404).json({ message: 'Nota no encontrada' });
     }
+    res.json(note);
   } catch (error) {
-    res.status(500).json({
-      message: 'Server error',
-    error: error.message
-    });
+    res.status(500).json({ message: 'Error al actualizar la nota', error: error.message });
   }
 };
 
 exports.deleteNoteById = async (req, res) => {
   try {
-    const note = await Note.findByIdandDelete(req.params.id);
-    if (note) {
-      res.status(200).json({
-        message: 'Note Borrada',
-      error: error.message
-      });
-    } else {
-      res.status(404).json({ message: 'Nota no encontrada' });
+    const note = await Note.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    if (!note) {
+      return res.status(404).json({ message: 'Nota no encontrada' });
     }
+    res.json({ message: 'Nota eliminada correctamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al borrar el producto' });
+    res.status(500).json({ message: 'Error al eliminar la nota', error: error.message });
   }
 };
