@@ -1,70 +1,85 @@
+
 const Note = require('../models/noteModel');
 
 exports.createNote = async (req, res) => {
   const { title, content } = req.body;
 
   try {
-    const note = await Note.create({
-      title,
-      content,
-      user: req.user._id,
-    });
-    res.status(201).json(note);
+    const newNote = await Note.create({ title, content });
+
+    res.status(201).json(newNote);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
-exports.getNotes = async (req, res) => {
+exports.getAllNotes = async (req, res) => {
   try {
-    const notes = await Note.find({ user: req.user._id });
-    res.json(notes);
+    const notes = await Note.find({});
+    res.json({ notes });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
 exports.getNoteById = async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
-    if (note && note.user.toString() === req.user._id.toString()) {
-      res.json(note);
+    const note = await Note.findNoteById(req.params.id);
+    if (!note) {
+      return res.status(404).json({ message: 'Note not found' });
     } else {
-      res.status(404).json({ message: 'Note not found' });
+      res.status(200).json(note);
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
-exports.updateNote = async (req, res) => {
-  const { title, content } = req.body;
+exports.updateNoteById = async (req, res) => {
 
   try {
-    const note = await Note.findById(req.params.id);
-    if (note && note.user.toString() === req.user._id.toString()) {
-      note.title = title || note.title;
-      note.content = content || note.content;
-      const updatedNote = await note.save();
-      res.json(updatedNote);
+    const note = await Note.findNoteByIdandUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
+    if (note) {
+      res.status(200).json(note);
     } else {
-      res.status(404).json({ message: 'Note not found' });
+      res.status(400).json({
+        message: 'Note not found',
+        error: error.message
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({
+      message: 'Server error',
+    error: error.message
+    });
   }
 };
 
-exports.deleteNote = async (req, res) => {
+exports.deleteNoteById = async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
-    if (note && note.user.toString() === req.user._id.toString()) {
-      await note.remove();
-      res.json({ message: 'Note removed' });
+    const note = await Note.findByIdandDelete(req.params.id);
+    if (note) {
+      res.status(200).json({
+        message: 'Note Borrada',
+      error: error.message
+      });
     } else {
-      res.status(404).json({ message: 'Note not found' });
+      res.status(404).json({ message: 'Nota no encontrada' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Error al borrar el producto' });
   }
 };
