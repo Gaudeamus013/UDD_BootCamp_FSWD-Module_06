@@ -37,7 +37,7 @@ exports.login = async (req, res) => {
     const payload = { user: { id: foundUser.id } }
     jwt.sign(
       payload,
-      process.env.SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: 3600 },
       (error, token) => {
         if (error) throw error;
