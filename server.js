@@ -1,13 +1,17 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
+
+const app = express();
+
 const connectDB = require('./config/database');
+const Note = require('./models/noteModel');
+
 const userRoutes = require('./routes/userRoutes');
 const noteRoutes = require('./routes/noteRoutes');
 
-dotenv.config();
+require('dotenv').config();
 
-const app = express();
+
 
 // Middleware
 app.use(cors());
