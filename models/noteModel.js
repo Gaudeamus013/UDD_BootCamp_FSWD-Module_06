@@ -1,6 +1,10 @@
+// models/noteModel.js
+
 const mongoose = require('mongoose');
 
-const noteSchema = new mongoose.Schema({
+// Define el esquema para las notas
+const noteSchema = new mongoose.Schema(
+  {
   title: { 
     type: String,
     required: true
@@ -14,9 +18,11 @@ const noteSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   }
-}, {
-  timestamps: true 
-});
+},
+{
+  timestamps: true  // Agrega campos createdAt y updatedAt automáticamente
+}
+);
 
 const Note = mongoose.model('Note', noteSchema);
 

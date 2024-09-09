@@ -1,5 +1,8 @@
+// models/userModel.js
+
 const mongoose = require('mongoose');
 
+// Define el esquema para los usuarios
 const userSchema = new mongoose.Schema(
   {
   username: {
@@ -20,7 +23,7 @@ const userSchema = new mongoose.Schema(
   }
 },
 {
-  timestamps: true
+  timestamps: true  // Agrega campos createdAt y updatedAt automáticamente
 }
 );
 

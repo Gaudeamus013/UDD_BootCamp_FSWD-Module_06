@@ -1,8 +1,12 @@
+// controllers/noteController.js
+
 const Note = require('../models/noteModel');
 
+// Controlador para crear una nueva nota
 exports.createNote = async (req, res) => {
   try {
     const { title, content } = req.body;
+    // Crea una nueva nota asociada al usuario actual
     const newNote = await Note.create({ title, content, user: req.user.id });
     res.status(201).json(newNote);
   } catch (error) {
@@ -10,6 +14,7 @@ exports.createNote = async (req, res) => {
   }
 };
 
+// Controlador para obtener todas las notas del usuario actual
 exports.getAllNotes = async (req, res) => {
   try {
     const notes = await Note.find({ user: req.user.id });
@@ -19,8 +24,10 @@ exports.getAllNotes = async (req, res) => {
   }
 };
 
+// Controlador para obtener una nota específica por su ID
 exports.getNoteById = async (req, res) => {
   try {
+    // Busca la nota por ID y asegura que pertenezca al usuario actual
     const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
     if (!note) {
       return res.status(404).json({ message: 'Nota no encontrada' });
@@ -31,8 +38,10 @@ exports.getNoteById = async (req, res) => {
   }
 };
 
+// Controlador para actualizar una nota existente
 exports.updateNoteById = async (req, res) => {
   try {
+    // Actualiza la nota y devuelve la versión actualizada
     const note = await Note.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
       req.body,
@@ -47,8 +56,10 @@ exports.updateNoteById = async (req, res) => {
   }
 };
 
+// Controlador para eliminar una nota
 exports.deleteNoteById = async (req, res) => {
   try {
+    // Elimina la nota y verifica que pertenezca al usuario actual
     const note = await Note.findOneAndDelete({ _id: req.params.id, user: req.user.id });
     if (!note) {
       return res.status(404).json({ message: 'Nota no encontrada' });
