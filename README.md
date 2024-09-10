@@ -117,9 +117,15 @@ npm start
 
 Las contribuciones son bienvenidas. Por favor, abre un issue para discutir cambios mayores antes de crear un pull request.
 
+## Despliegue
+
+La aplicación ha sido desplegada en Render.com. Puedes acceder a la aplicación en vivo en el siguiente enlace:
+
+[Proyecto Gestión de Notas - Proyecto Desplegado](https://gestion-notas.onrender.com)
+
 ## Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. 
 
 ## Autor
 
